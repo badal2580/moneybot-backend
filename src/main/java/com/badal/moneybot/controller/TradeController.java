@@ -9,7 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-
+import org.springframework.web.bind.annotation.CrossOrigin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -18,6 +18,10 @@ import java.util.List;
 @Tag(name = "Trade API", description = "Operations related to crypto trading")
 @RestController
 @RequestMapping("/trade")
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "https://moneybot-frontend-s5zo.vercel.app"
+})
 public class TradeController {
 
     private final TradeService tradeService;
