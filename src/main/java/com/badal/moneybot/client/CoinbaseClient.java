@@ -17,14 +17,17 @@ public class CoinbaseClient {
         this.config = config;
     }
 
-    public PriceResponse getBitcoinPrice() {
+    public PriceResponse getCoinPrice(String pair) {
 
         String url =
                 config.getBaseUrl() +
-                        "/v2/prices/BTC-USD/spot";
+                        "/v2/prices/" +
+                        pair +
+                        "/spot";
 
-        return restTemplate.getForObject(url, PriceResponse.class);
-
+        return restTemplate.getForObject(
+                url,
+                PriceResponse.class
+        );
     }
-
 }

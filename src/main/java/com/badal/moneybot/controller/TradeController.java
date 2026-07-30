@@ -3,230 +3,227 @@ package com.badal.moneybot.controller;
 import com.badal.moneybot.constant.ApiMessages;
 import com.badal.moneybot.dto.*;
 import com.badal.moneybot.entity.Trade;
-import com.badal.moneybot.service.TelegramService;
 import com.badal.moneybot.service.TradeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
-@Tag(name = "Trade API", description = "Operations related to crypto trading")
+@Tag(
+        name = "Trade API",
+        description = "Authenticated crypto paper-trading operations"
+)
 @RestController
 @RequestMapping("/trade")
-@CrossOrigin(origins = {
-        "http://localhost:5173",
-        "https://moneybot-frontend-s5zo.vercel.app"
-})
+@SecurityRequirement(name = "bearerAuth")
 public class TradeController {
 
     private final TradeService tradeService;
 
-    private final TelegramService telegramService;
-
-    public TradeController(TradeService tradeService, TelegramService telegramService) {
+    public TradeController(TradeService tradeService) {
         this.tradeService = tradeService;
-        this.telegramService = telegramService;
-    }
-
-    @Operation(summary = "Create Demo Trade")
-    @PostMapping("/save")
-    public ApiResponse<Trade> saveTrade() {
-
-        Trade trade = tradeService.saveTrade();
-
-        return ApiResponse.<Trade>builder()
-                .success(true)
-                .message(ApiMessages.TRADE_CREATED)
-                .data(trade)
-                .build();
     }
 
     @Operation(
-            summary = "Create Buy Trade",
-            description = "Creates a new crypto trade using live Coinbase price."
+            summary = "Create buy trade",
+            description = "Creates a trade using the selected coin's live market price."
     )
     @PostMapping("/buy")
-    public ApiResponse<Trade> buyTrade(@Valid @RequestBody BuyTradeRequest request) {
+    public ResponseEntity<ApiResponse<Trade>> buyTrade(
+            @Valid @RequestBody BuyTradeRequest request
+    ) {
 
         Trade trade = tradeService.buyTrade(request);
 
-        return ApiResponse.<Trade>builder()
-                .success(true)
-                .message(ApiMessages.TRADE_CREATED)
-                .data(trade)
-                .build();
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        ApiMessages.TRADE_CREATED,
+                        trade
+                )
+        );
     }
 
-    @Operation(summary = "Sell Trade using Request Body")
-    @PostMapping("/sell")
-    public ApiResponse<Trade> sellTrade(@RequestBody SellTradeRequest request) {
-
-        Trade trade = tradeService.sellTrade(request);
-
-        return ApiResponse.<Trade>builder()
-                .success(true)
-                .message("Trade sold successfully")
-                .data(trade)
-                .build();
-    }
-
-    @Operation(summary = "Sell an Existing Trade")
+    @Operation(
+            summary = "Sell trade",
+            description = "Closes a logged-in user's open trade."
+    )
     @PutMapping("/sell/{id}")
-    public ApiResponse<Trade> sellTrade(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Trade>> sellTrade(
+            @PathVariable Long id
+    ) {
 
         Trade trade = tradeService.sellTrade(id);
 
-        return ApiResponse.<Trade>builder()
-                .success(true)
-                .message("Trade sold successfully")
-                .data(trade)
-                .build();
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Trade sold successfully",
+                        trade
+                )
+        );
     }
 
-    @Operation(summary = "Get All Trades")
-    @GetMapping("/all")
-    public ApiResponse<List<Trade>> getAllTrades() {
-
-        return ApiResponse.<List<Trade>>builder()
-                .success(true)
-                .message("All trades fetched successfully")
-                .data(tradeService.getAllTrades())
-                .build();
-    }
-
-    @Operation(summary = "Test Trade Controller")
-    @GetMapping("/btc")
-    public ApiResponse<String> test() {
-
-        return ApiResponse.<String>builder()
-                .success(true)
-                .message("Controller is working")
-                .data("BTC Controller Working")
-                .build();
-    }
-
-    @Operation(summary = "Get Live Bitcoin Price")
-    @GetMapping("/price")
-    public String getPrice() {
-        return tradeService.getBitcoinPrice();
-    }
-
-
-    @Operation(summary = "Get Latest Live Bitcoin Price")
-    @GetMapping("/latest")
-    public ApiResponse<String> latestPrice() {
-
-        return ApiResponse.<String>builder()
-                .success(true)
-                .message("Live Bitcoin price fetched successfully")
-                .data(tradeService.getBitcoinPrice())
-                .build();
-    }
-
-    @Operation(summary = "Get All Open Trades")
-    @GetMapping("/open")
-    public ApiResponse<List<Trade>> getOpenTrades() {
-
-        return ApiResponse.<List<Trade>>builder()
-                .success(true)
-                .message("Open trades fetched successfully")
-                .data(tradeService.getOpenTrades())
-                .build();
-    }
-
-    @Operation(summary = "Get All Closed Trades")
-    @GetMapping("/closed")
-    public ApiResponse<List<Trade>> getClosedTrades() {
-
-        return ApiResponse.<List<Trade>>builder()
-                .success(true)
-                .message("Closed trades fetched successfully")
-                .data(tradeService.getClosedTrades())
-                .build();
-    }
     @Operation(
-            summary="Dashboard",
-            description="Returns dashboard statistics including live price and total profit."
+            summary = "Sell trade using request body"
+    )
+    @PostMapping("/sell")
+    public ResponseEntity<ApiResponse<Trade>> sellTrade(
+            @Valid @RequestBody SellTradeRequest request
+    ) {
+
+        Trade trade = tradeService.sellTrade(request);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Trade sold successfully",
+                        trade
+                )
+        );
+    }
+
+    @Operation(summary = "Get logged-in user's trades")
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<Trade>>> getAllTrades() {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Trades fetched successfully",
+                        tradeService.getAllTrades()
+                )
+        );
+    }
+
+    @Operation(summary = "Get live Bitcoin price")
+    @GetMapping("/price")
+    public ResponseEntity<ApiResponse<String>> getBitcoinPrice() {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Live Bitcoin price fetched successfully",
+                        tradeService.getBitcoinPrice()
+                )
+        );
+    }
+
+    @Operation(summary = "Get open trades")
+    @GetMapping("/open")
+    public ResponseEntity<ApiResponse<List<Trade>>> getOpenTrades() {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Open trades fetched successfully",
+                        tradeService.getOpenTrades()
+                )
+        );
+    }
+
+    @Operation(summary = "Get closed trades")
+    @GetMapping("/closed")
+    public ResponseEntity<ApiResponse<List<Trade>>> getClosedTrades() {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Closed trades fetched successfully",
+                        tradeService.getClosedTrades()
+                )
+        );
+    }
+
+    @Operation(
+            summary = "Get dashboard",
+            description = "Returns trade counts, profit and current BTC price."
     )
     @GetMapping("/dashboard")
-    public ApiResponse<DashboardResponse> dashboard() {
+    public ResponseEntity<ApiResponse<DashboardResponse>> getDashboard() {
 
-        DashboardResponse response = tradeService.getDashboard();
-
-        return ApiResponse.<DashboardResponse>builder()
-                .success(true)
-                .message("Dashboard fetched successfully")
-                .data(response)
-                .build();
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Dashboard fetched successfully",
+                        tradeService.getDashboard()
+                )
+        );
     }
 
     @Operation(
-            summary="Trade History",
-            description="Returns paginated trade history."
+            summary = "Get paginated trade history"
     )
     @GetMapping("/history")
-    public ApiResponse<Page<Trade>> getHistory(
+    public ResponseEntity<ApiResponse<Page<Trade>>> getHistory(
 
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size,
-            @RequestParam(defaultValue = "createdAt") String sort
+            @RequestParam(defaultValue = "0")
+            int page,
 
+            @RequestParam(defaultValue = "5")
+            int size,
+
+            @RequestParam(defaultValue = "createdAt")
+            String sort
     ) {
 
         Page<Trade> trades =
-                tradeService.getTradeHistory(page, size, sort);
+                tradeService.getTradeHistory(
+                        page,
+                        size,
+                        sort
+                );
 
-        return ApiResponse.<Page<Trade>>builder()
-                .success(true)
-                .message("Trade history fetched successfully")
-                .data(trades)
-                .build();
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Trade history fetched successfully",
+                        trades
+                )
+        );
     }
 
     @Operation(
-            summary="Search Trades",
-            description="Search trades using status and symbol."
+            summary = "Search trades",
+            description = "Filters the logged-in user's trades by status and symbol."
     )
     @GetMapping("/search")
-    public ApiResponse<List<Trade>> searchTrades(
+    public ResponseEntity<ApiResponse<List<Trade>>> searchTrades(
 
-            @RequestParam(required = false) String status,
+            @RequestParam(required = false)
+            String status,
 
-            @RequestParam(required = false) String symbol
-
+            @RequestParam(required = false)
+            String symbol
     ) {
 
         List<Trade> trades =
-                tradeService.searchTrades(status, symbol);
+                tradeService.searchTrades(
+                        status,
+                        symbol
+                );
 
-        return ApiResponse.<List<Trade>>builder()
-                .success(true)
-                .message("Trades fetched successfully")
-                .data(trades)
-                .build();
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Trades fetched successfully",
+                        trades
+                )
+        );
     }
-    @Operation(
-            summary = "Trade Statistics",
-            description = "Returns complete trading statistics."
-    )
+
+    @Operation(summary = "Get trade statistics")
     @GetMapping("/statistics")
-    public ApiResponse<TradeStatisticsResponse> getStatistics() {
+    public ResponseEntity<ApiResponse<TradeStatisticsResponse>>
+    getStatistics() {
 
-        return ApiResponse.<TradeStatisticsResponse>builder()
-                .success(true)
-                .message("Trade statistics fetched successfully")
-                .data(tradeService.getTradeStatistics())
-                .build();
-
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Trade statistics fetched successfully",
+                        tradeService.getTradeStatistics()
+                )
+        );
     }
 
+    @Operation(summary = "Get profit chart data")
     @GetMapping("/profit-chart")
-    public ResponseEntity<ApiResponse<List<ProfitChartResponse>>> getProfitChart() {
+    public ResponseEntity<ApiResponse<List<ProfitChartResponse>>>
+    getProfitChart() {
 
         return ResponseEntity.ok(
                 ApiResponse.success(
@@ -234,17 +231,31 @@ public class TradeController {
                         tradeService.getProfitChart()
                 )
         );
-
     }
 
+    @Operation(summary = "Get portfolio summary")
+    @GetMapping("/portfolio-summary")
+    public ResponseEntity<ApiResponse<PortfolioSummaryResponse>>
+    getPortfolioSummary() {
 
-    @GetMapping("/telegram-test")
-    public String telegramTest() {
-
-        telegramService.sendMessage("🚀 MoneyBot Connected Successfully!");
-
-        return "Telegram Message Sent";
-
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Portfolio summary fetched successfully",
+                        tradeService.getPortfolioSummary()
+                )
+        );
     }
 
+    @Operation(summary = "Get trade analytics")
+    @GetMapping("/analytics")
+    public ResponseEntity<ApiResponse<TradeAnalyticsResponse>>
+    getAnalytics() {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Trade analytics fetched successfully",
+                        tradeService.getTradeAnalytics()
+                )
+        );
+    }
 }

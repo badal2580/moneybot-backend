@@ -1,31 +1,49 @@
 package com.badal.moneybot.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
-public class CorsConfig implements WebMvcConfigurer {
+public class CorsConfig {
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
 
-        registry.addMapping("/**")
-                .allowedOrigins(
-                        "http://localhost:5173",
-                        "https://moneybot-frontend-s5zo.vercel.app"
-                )
-                .allowedMethods(
-                        "GET",
-                        "POST",
-                        "PUT",
-                        "DELETE",
-                        "PATCH",
-                        "OPTIONS"
-                )
-                .allowedHeaders("*")
-                .allowCredentials(false);
+        CorsConfiguration configuration = new CorsConfiguration();
 
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:5174",
+                "https://moneybot-frontend-s5zo.vercel.app"
+        ));
+
+        configuration.setAllowedMethods(List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "PATCH",
+                "OPTIONS"
+        ));
+
+        configuration.setAllowedHeaders(List.of("*"));
+
+        configuration.setExposedHeaders(List.of(
+                "Authorization"
+        ));
+
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
-
 }

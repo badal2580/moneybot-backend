@@ -9,6 +9,7 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class TelegramService {
 
+
     @Value("${telegram.bot.token}")
     private String botToken;
 
@@ -18,6 +19,12 @@ public class TelegramService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public void sendMessage(String message) {
+
+        System.out.println("BOT TOKEN LOADED = "
+                + (botToken != null && !botToken.isBlank()));
+
+        System.out.println("CHAT ID LOADED = "
+                + (chatId != null && !chatId.isBlank()));
 
         String url =
                 "https://api.telegram.org/bot"
